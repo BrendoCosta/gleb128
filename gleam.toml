@@ -1,0 +1,11 @@
+name = "gleb128"
+version = "1.0.0"
+description = "GLEB128 is a small Gleam library that provides functions for encoding and decoding LEB128 (Little Endian Base 128) integers."
+licences = ["MIT"]
+repository = { type = "github", user = "BrendoCosta", repo = "gleb128" }
+
+[dependencies]
+gleam_stdlib = ">= 0.34.0 and < 2.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
