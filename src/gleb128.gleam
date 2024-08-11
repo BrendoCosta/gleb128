@@ -4,49 +4,7 @@ import gleam/bit_array
 import gleam/bytes_builder.{type BytesBuilder}
 import gleam/int
 
-pub type Endianness
-{
-    Big
-    Little
-}
-
-// Determines the if the current CPU is either little endian or big endian.
-pub fn get_cpu_endianness() -> Result(Endianness, String)
-{
-    case <<0x01:native-size(32)>>
-    {
-        <<0x01, 0x00, 0x00, 0x00>> -> Ok(Little)
-        <<0x00, 0x00, 0x00, 0x01>> -> Ok(Big)
-        _ -> Error("Can't determine CPU's endianness. Maybe the CPU uses a mixed-endian format?")
-    }
-}
-
-/// Decodes an arbitrary bit array into a native unsigned (positive) integer.
-@external(erlang, "binary", "decode_unsigned")
-pub fn decode_native_unsigned_integer(data: BitArray, endianness: Endianness) -> Int
-{
-    let size_in_bits = bit_array.byte_size(data) * 8
-
-    case endianness, data
-    {
-        Little, <<x:unsigned-little-size(size_in_bits)>> -> x
-        Big, <<x:unsigned-big-size(size_in_bits)>> -> x
-        _, _ -> 0
-    }
-}
-
-/// Decodes an arbitrary bit array into a native signed (positive or negative) integer.
-pub fn decode_native_signed_integer(data: BitArray, endianness: Endianness) -> Int
-{
-    let size_in_bits = bit_array.byte_size(data) * 8
-
-    case endianness, data
-    {
-        Little, <<x:signed-little-size(size_in_bits)>> -> x
-        Big, <<x:signed-big-size(size_in_bits)>> -> x
-        _, _ -> 0
-    }
-}
+import gleb128/internal/native
 
 fn do_encode_unsigned(value: Int, builder: BytesBuilder) -> Result(BytesBuilder, String)
 {
@@ -116,7 +74,7 @@ fn do_encode_signed(value: Int, builder: BytesBuilder) -> BytesBuilder
     }
 }
 
-fn do_decode_unsigned(data: BitArray, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(Int, String)
+fn do_decode_unsigned(data: BitArray, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), String)
 {
     case bit_array.slice(from: data, at: position_accumulator, take: 1)
     {
@@ -137,17 +95,17 @@ fn do_decode_unsigned(data: BitArray, position_accumulator: Int, result_accumula
 
                 case next_chunk
                 {
-                    0 -> Ok(result_accumulator) // No more chunks to process, return the result
+                    0 -> Ok(#(result_accumulator, position_accumulator + 1)) // No more chunks to process, return the result + bytes read
                     _ -> do_decode_unsigned(data, position_accumulator + 1, result_accumulator, shift_accumulator + 7) // Continue
                 }
             }
             _ -> Error("Can't decode the bit array slice into a byte")
         }
-        _ -> Error("Can't get the bit array slice")
+        _ -> Error("Invalid LEB128 integer")
     }
 }
 
-fn do_decode_signed(data: BitArray, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(Int, String)
+fn do_decode_signed(data: BitArray, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), String)
 {
     case bit_array.slice(from: data, at: position_accumulator, take: 1)
     {
@@ -178,8 +136,8 @@ fn do_decode_signed(data: BitArray, position_accumulator: Int, result_accumulato
                         let sign = int.bitwise_shift_right(sign, 6)
                         case sign
                         {
-                            1 -> Ok(int.bitwise_or(result_accumulator, int.bitwise_shift_left(int.bitwise_not(0), shift_accumulator)))
-                            _ -> Ok(result_accumulator)
+                            1 -> Ok(#(int.bitwise_or(result_accumulator, int.bitwise_shift_left(int.bitwise_not(0), shift_accumulator)), position_accumulator + 1))
+                            _ -> Ok(#(result_accumulator, position_accumulator + 1))
                         }
                     }
                     _ -> do_decode_signed(data, position_accumulator + 1, result_accumulator, shift_accumulator)
@@ -187,11 +145,11 @@ fn do_decode_signed(data: BitArray, position_accumulator: Int, result_accumulato
             }
             _ -> Error("Can't decode the bit array slice into a byte")
         }
-        _ -> Error("Can't get the bit array slice")
+        _ -> Error("Invalid LEB128 integer")
     }
 }
 
-fn do_fast_decode_unsigned(data: Int, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(Int, String)
+fn do_fast_decode_unsigned(data: Int, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), String)
 {
     let byte = int.bitwise_shift_right(data, 8 * position_accumulator)
     let byte = int.bitwise_and(byte, 0xff)
@@ -209,12 +167,12 @@ fn do_fast_decode_unsigned(data: Int, position_accumulator: Int, result_accumula
 
     case next_chunk
     {
-        0 -> Ok(result_accumulator) // No more chunks to process, return the result
+        0 -> Ok(#(result_accumulator, position_accumulator + 1)) // No more chunks to process, return the result + bytes read
         _ -> do_fast_decode_unsigned(data, position_accumulator + 1, result_accumulator, shift_accumulator + 7) // Continue
     }
 }
 
-fn do_fast_decode_signed(data: Int, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(Int, String)
+fn do_fast_decode_signed(data: Int, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), String)
 {
     let byte = int.bitwise_shift_right(data, 8 * position_accumulator)
     let byte = int.bitwise_and(byte, 0xff)
@@ -242,8 +200,8 @@ fn do_fast_decode_signed(data: Int, position_accumulator: Int, result_accumulato
             let sign = int.bitwise_shift_right(sign, 6)
             case sign
             {
-                1 -> Ok(int.bitwise_or(result_accumulator, int.bitwise_shift_left(int.bitwise_not(0), shift_accumulator)))
-                _ -> Ok(result_accumulator)
+                1 -> Ok(#(int.bitwise_or(result_accumulator, int.bitwise_shift_left(int.bitwise_not(0), shift_accumulator)), position_accumulator + 1))
+                _ -> Ok(#(result_accumulator, position_accumulator + 1))
             }
         }
         _ -> do_fast_decode_signed(data, position_accumulator + 1, result_accumulator, shift_accumulator)
@@ -270,17 +228,19 @@ pub fn encode_signed(value: Int) -> BitArray
 }
 
 /// Decodes a bit array containing some LEB128 integer as an unsigned (positive) native integer.
-///
-/// Returns an error when the given data can't be decoded.
-pub fn decode_unsigned(data: BitArray) -> Result(Int, String)
+/// 
+/// Returns a tuple containing the decoded value in its first position, followed by the count of
+/// bytes read in its second position. Returns an error when the given data can't be decoded.
+pub fn decode_unsigned(data: BitArray) -> Result(#(Int, Int), String)
 {
     do_decode_unsigned(data, 0, 0, 0)
 }
 
 /// Decodes a bit array containing some LEB128 integer as an signed (positive or negative) native integer.
-///
-/// Returns an error when the given data can't be decoded.
-pub fn decode_signed(data: BitArray) -> Result(Int, String)
+/// 
+/// Returns a tuple containing the decoded value in its first position, followed by the count of
+/// bytes read in its second position. Returns an error when the given data can't be decoded.
+pub fn decode_signed(data: BitArray) -> Result(#(Int, Int), String)
 {
     do_decode_signed(data, 0, 0, 0)
 }
@@ -290,14 +250,15 @@ pub fn decode_signed(data: BitArray) -> Result(Int, String)
 /// the data as an native integer, thus enabling a performance boost. It will fallback to the default
 /// decoding function when the length of the data is greater than 8 bytes.
 ///
-/// Returns an error when the given data can't be decoded.
-pub fn fast_decode_unsigned(data: BitArray) -> Result(Int, String)
+/// Returns a tuple containing the decoded value in its first position, followed by the count of
+/// bytes read in its second position. Returns an error when the given data can't be decoded.
+pub fn fast_decode_unsigned(data: BitArray) -> Result(#(Int, Int), String)
 {
     case bit_array.byte_size(data)
     {
-        s if s <= 8 -> case get_cpu_endianness()
+        s if s <= 8 -> case native.get_cpu_endianness()
         {
-            Ok(endianness) -> do_fast_decode_unsigned(decode_native_unsigned_integer(data, endianness), 0, 0, 0)
+            Ok(endianness) -> do_fast_decode_unsigned(native.decode_native_unsigned_integer(data, endianness), 0, 0, 0)
             Error(reason) -> Error(reason)
         }
         _ -> do_decode_unsigned(data, 0, 0, 0)
@@ -309,14 +270,15 @@ pub fn fast_decode_unsigned(data: BitArray) -> Result(Int, String)
 /// the data as an native integer, thus enabling a performance boost. It will fallback to the default
 /// decoding function when the length of the data is greater than 8 bytes.
 ///
-/// Returns an error when the given data can't be decoded.
-pub fn fast_decode_signed(data: BitArray) -> Result(Int, String)
+/// Returns a tuple containing the decoded value in its first position, followed by the count of
+/// bytes read in its second position. Returns an error when the given data can't be decoded.
+pub fn fast_decode_signed(data: BitArray) -> Result(#(Int, Int), String)
 {
     case bit_array.byte_size(data)
     {
-        s if s <= 8 -> case get_cpu_endianness()
+        s if s <= 8 -> case native.get_cpu_endianness()
         {
-            Ok(endianness) -> do_fast_decode_signed(decode_native_signed_integer(data, endianness), 0, 0, 0)
+            Ok(endianness) -> do_fast_decode_signed(native.decode_native_signed_integer(data, endianness), 0, 0, 0)
             Error(reason) -> Error(reason)
         }
         _ -> do_decode_signed(data, 0, 0, 0)
