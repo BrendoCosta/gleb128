@@ -36,7 +36,11 @@ Ok(<<255, 1>>)
 <<129, 126>>
 ```
 
+Which corresponds, in hexadecimal, respectively, to ``<<0xff, 0x01>>`` and ``<<0x81, 0x7e>>``.
+
 ### Decoding
+
+The decoding functions returns a ``Result`` wrapping a tuple containing the decoded value in its first position, followed by the count of bytes read in its second position.
 
 ```gleam
 import gleam/io
@@ -44,7 +48,7 @@ import gleb128
 
 pub fn main()
 {
-    let unsigned_decoded = gleb128.decode_unsigned(<<255, 1>>)
+    let unsigned_decoded = gleb128.decode_unsigned(<<255, 1, 4, 80, 64>>) // actually <<4, 80, 64>> will be ignored, so only the first two bytes will be read
     let signed_decoded = gleb128.decode_signed(<<129, 126>>)
 
     io.debug(unsigned_decoded)
@@ -55,8 +59,8 @@ pub fn main()
 Shows the following in output:
 
 ```console
-Ok(255)
-Ok(-255)
+Ok(#(255, 2))
+Ok(#(-255, 2))
 ```
 
 ### Fast decoding
