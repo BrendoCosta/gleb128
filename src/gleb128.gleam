@@ -256,11 +256,7 @@ pub fn fast_decode_unsigned(data: BitArray) -> Result(#(Int, Int), String)
 {
     case bit_array.byte_size(data)
     {
-        s if s <= 8 -> case native.get_cpu_endianness()
-        {
-            Ok(endianness) -> do_fast_decode_unsigned(native.decode_native_unsigned_integer(data, endianness), 0, 0, 0)
-            Error(reason) -> Error(reason)
-        }
+        s if s <= 8 -> do_fast_decode_unsigned(native.decode_native_unsigned_integer(data, native.Little), 0, 0, 0)
         _ -> do_decode_unsigned(data, 0, 0, 0)
     }
 }
@@ -276,11 +272,7 @@ pub fn fast_decode_signed(data: BitArray) -> Result(#(Int, Int), String)
 {
     case bit_array.byte_size(data)
     {
-        s if s <= 8 -> case native.get_cpu_endianness()
-        {
-            Ok(endianness) -> do_fast_decode_signed(native.decode_native_signed_integer(data, endianness), 0, 0, 0)
-            Error(reason) -> Error(reason)
-        }
+        s if s <= 8 -> do_fast_decode_signed(native.decode_native_signed_integer(data, native.Little), 0, 0, 0)
         _ -> do_decode_signed(data, 0, 0, 0)
     }
 }
