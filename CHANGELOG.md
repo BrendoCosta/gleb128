@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.0.1 - 2024/09/04
+- Fixed ``fast_decode_unsigned`` and ``fast_decode_signed`` leading to incorrect values on big-endian CPUs. The package is now [https://github.com/BrendoCosta/gleb128/actions/runs/10695379091/job/29648711161](properly tested in a big-endian environment) (s390x running alpine:edge).
+
 ## v2.0.0 - 2024/08/11
 - All decoding functions now returns a tuple containing the decoded value in its first position, followed by the count of bytes read in its second position.
 - The ``decode_native_signed_integer``, ``decode_native_unsigned_integer`` and ``get_cpu_endianness`` functions are now hidden from the library's public API;
