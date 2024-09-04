@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  amd64:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +17,23 @@ jobs:
           otp-version: "27.0.1"
           gleam-version: "1.4.1"
           rebar3-version: "3.24.0"
-          # elixir-version: "1.15.4"
-      - run: gleam deps download
-      - run: gleam test
+      - name: Download dependencies
+        run: gleam deps download
+      - name: Run tests
+        run: gleam test
+  s390x:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup alpine:edge for s390x
+        uses: jirutka/setup-alpine@v1
+        with:
+          arch: s390x
+          branch: edge
+          packages: gleam=1.4.1-r0
+      - name: Download dependencies
+        run: gleam deps download
+        shell: alpine.sh {0}
+      - name: Run tests
+        run: gleam test
+        shell: alpine.sh {0}
