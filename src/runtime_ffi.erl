@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 -module(runtime_ffi).
 -compile([no_auto_import, nowarn_unused_vars, nowarn_unused_function, nowarn_nomatch]).
 
