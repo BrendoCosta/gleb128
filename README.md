@@ -4,7 +4,9 @@
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/gleb128/)
 [![Package License](https://img.shields.io/hexpm/l/gleb128)](https://hex.pm/packages/gleb128)
 [![Package Total Downloads Count](https://img.shields.io/hexpm/dt/gleb128)](https://hex.pm/packages/gleb128)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/BrendoCosta/gleb128/test.yml)](https://hex.pm/packages/gleb128)
+[![Test Status](https://github.com/BrendoCosta/gleb128/actions/workflows/test.yml/badge.svg)](https://github.com/BrendoCosta/gleb128/actions)
+![Available for the Erlang runtime](https://img.shields.io/badge/target-Erlang-a2003e)
+![Available for JavaScript runtimes](https://img.shields.io/badge/target-JavaScript-f0dc4e)
 [![Total Stars Count](https://img.shields.io/github/stars/BrendoCosta/gleb128)](https://hex.pm/packages/gleb128)
 
 ## Description
@@ -12,6 +14,9 @@
 GLEB128 is a small Gleam library that provides functions for encoding and decoding LEB128 (Little Endian Base 128) integers. LEB128 is a variable-length code compression method used to store arbitrarily large integers in a small number of bytes. Notable use cases for LEB128 are in the DWARF debug file format and the WebAssembly's binary format.
 
 ## Usage
+
+> [!WARNING]
+> JavaScript, unlike Erlang, does not natively support arbitrary precision integers. While JavaScript has BigInt to provide arbitrary precision arithmetic, [Gleam does not use it as they have issues regarding its performance and interoperability](https://github.com/gleam-lang/gleam/issues/2853), and this package follows this design choice. When targeting JavaScript, be aware that unexpected errors may occur when trying to decode LEB128 data greater than 0xFFFFFFFFFFFFFF0F (LEB128 equivalent to Number.MAX_SAFE_INTEGER) and less than 0x8180808080808070 (LEB128 equivalent to Number.MIN_SAFE_INTEGER).
 
 ### Encoding
 

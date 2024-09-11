@@ -4,6 +4,7 @@ import gleeunit
 import gleeunit/should
 import gleam/list
 import gleb128
+import gleb128/internal/runtime
 import common
 
 pub fn main()
@@ -13,7 +14,11 @@ pub fn main()
 
 pub fn encode_unsigned_test()
 {
-    common.unsigned_test_cases
+    case runtime.get_current_runtime()
+    {
+        runtime.Erlang -> common.unsigned_test_cases |> list.append(common.unsigned_test_cases_erlang)
+        runtime.JavaScript -> common.unsigned_test_cases
+    }
     |> list.each
     (
         fn (pair)
@@ -26,7 +31,11 @@ pub fn encode_unsigned_test()
 
 pub fn encode_signed_test()
 {
-    common.signed_test_cases
+    case runtime.get_current_runtime()
+    {
+        runtime.Erlang -> common.signed_test_cases |> list.append(common.signed_test_cases_erlang)
+        runtime.JavaScript -> common.signed_test_cases
+    }
     |> list.each
     (
         fn (pair)
@@ -39,7 +48,11 @@ pub fn encode_signed_test()
 
 pub fn decode_unsigned_test()
 {
-    common.unsigned_test_cases
+    case runtime.get_current_runtime()
+    {
+        runtime.Erlang -> common.unsigned_test_cases |> list.append(common.unsigned_test_cases_erlang)
+        runtime.JavaScript -> common.unsigned_test_cases
+    }
     |> list.each
     (
         fn (pair)
@@ -53,7 +66,11 @@ pub fn decode_unsigned_test()
 
 pub fn decode_signed_test()
 {
-    common.signed_test_cases
+    case runtime.get_current_runtime()
+    {
+        runtime.Erlang -> common.signed_test_cases |> list.append(common.signed_test_cases_erlang)
+        runtime.JavaScript -> common.signed_test_cases
+    }
     |> list.each
     (
         fn (pair)
@@ -67,7 +84,11 @@ pub fn decode_signed_test()
 
 pub fn fast_decode_unsigned_test()
 {
-    common.unsigned_test_cases
+    case runtime.get_current_runtime()
+    {
+        runtime.Erlang -> common.unsigned_test_cases |> list.append(common.unsigned_test_cases_erlang)
+        runtime.JavaScript -> common.unsigned_test_cases
+    }
     |> list.each
     (
         fn (pair)
@@ -81,7 +102,11 @@ pub fn fast_decode_unsigned_test()
 
 pub fn fast_decode_signed_test()
 {
-    common.signed_test_cases
+    case runtime.get_current_runtime()
+    {
+        runtime.Erlang -> common.signed_test_cases |> list.append(common.signed_test_cases_erlang)
+        runtime.JavaScript -> common.signed_test_cases
+    }
     |> list.each
     (
         fn (pair)

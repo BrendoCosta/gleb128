@@ -17,10 +17,15 @@ jobs:
           otp-version: "27.0.1"
           gleam-version: "1.4.1"
           rebar3-version: "3.24.0"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.15.1"
       - name: Download dependencies
         run: gleam deps download
-      - name: Run tests
-        run: gleam test
+      - name: Run tests (Erlang)
+        run: gleam test --target erlang
+      - name: Run tests (JavaScript/Node.js)
+        run: gleam test --target javascript --runtime node
   s390x:
     runs-on: ubuntu-latest
     steps:
@@ -30,10 +35,15 @@ jobs:
         with:
           arch: s390x
           branch: edge
-          packages: gleam=1.4.1-r0
+          packages: >
+            gleam=1.4.1-r0
+            nodejs=20.15.1-r0
       - name: Download dependencies
         run: gleam deps download
         shell: alpine.sh {0}
-      - name: Run tests
-        run: gleam test
+      - name: Run tests (Erlang)
+        run: gleam test --target erlang
+        shell: alpine.sh {0}
+      - name: Run tests (JavaScript/Node.js)
+        run: gleam test --target javascript --runtime node
         shell: alpine.sh {0}
