@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.1.0 - 2024/09/11
+- Added support for building for JavaScript targets.
+
 ## v2.0.1 - 2024/09/04
 - Fixed ``fast_decode_unsigned`` and ``fast_decode_signed`` leading to incorrect values on big-endian CPUs. The package is now [properly tested in a big-endian environment](https://github.com/BrendoCosta/gleb128/actions/runs/10695379091/job/29648711161) (s390x running alpine:edge).
 
