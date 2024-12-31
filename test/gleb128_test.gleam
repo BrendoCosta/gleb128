@@ -4,7 +4,6 @@ import gleeunit
 import gleeunit/should
 import gleam/list
 import gleb128
-import gleb128/internal/runtime
 import common
 
 pub fn main()
@@ -12,13 +11,11 @@ pub fn main()
     gleeunit.main()
 }
 
+@target(erlang)
 pub fn encode_unsigned_test()
 {
-    case runtime.get_current_runtime()
-    {
-        runtime.Erlang -> common.unsigned_test_cases |> list.append(common.unsigned_test_cases_erlang)
-        runtime.JavaScript -> common.unsigned_test_cases
-    }
+    common.unsigned_test_cases
+    |> list.append(common.unsigned_test_cases_erlang)
     |> list.each
     (
         fn (pair)
@@ -29,13 +26,25 @@ pub fn encode_unsigned_test()
     )
 }
 
+@target(javascript)
+pub fn encode_unsigned_test()
+{
+    common.unsigned_test_cases
+    |> list.each
+    (
+        fn (pair)
+        {
+            gleb128.encode_unsigned(pair.0)
+            |> should.equal(Ok(pair.1))
+        }
+    )
+}
+
+@target(erlang)
 pub fn encode_signed_test()
 {
-    case runtime.get_current_runtime()
-    {
-        runtime.Erlang -> common.signed_test_cases |> list.append(common.signed_test_cases_erlang)
-        runtime.JavaScript -> common.signed_test_cases
-    }
+    common.signed_test_cases
+    |> list.append(common.signed_test_cases_erlang)
     |> list.each
     (
         fn (pair)
@@ -46,13 +55,25 @@ pub fn encode_signed_test()
     )
 }
 
+@target(javascript)
+pub fn encode_signed_test()
+{
+    common.signed_test_cases
+    |> list.each
+    (
+        fn (pair)
+        {
+            gleb128.encode_signed(pair.0)
+            |> should.equal(pair.1)
+        }
+    )
+}
+
+@target(erlang)
 pub fn decode_unsigned_test()
 {
-    case runtime.get_current_runtime()
-    {
-        runtime.Erlang -> common.unsigned_test_cases |> list.append(common.unsigned_test_cases_erlang)
-        runtime.JavaScript -> common.unsigned_test_cases
-    }
+    common.unsigned_test_cases
+    |> list.append(common.unsigned_test_cases_erlang)
     |> list.each
     (
         fn (pair)
@@ -64,13 +85,26 @@ pub fn decode_unsigned_test()
     )
 }
 
+@target(javascript)
+pub fn decode_unsigned_test()
+{
+    common.unsigned_test_cases
+    |> list.each
+    (
+        fn (pair)
+        {
+            gleb128.decode_unsigned(pair.1)
+            |> should.be_ok
+            |> should.equal(#(pair.0, pair.2))
+        }
+    )
+}
+
+@target(erlang)
 pub fn decode_signed_test()
 {
-    case runtime.get_current_runtime()
-    {
-        runtime.Erlang -> common.signed_test_cases |> list.append(common.signed_test_cases_erlang)
-        runtime.JavaScript -> common.signed_test_cases
-    }
+    common.signed_test_cases
+    |> list.append(common.signed_test_cases_erlang)
     |> list.each
     (
         fn (pair)
@@ -82,13 +116,26 @@ pub fn decode_signed_test()
     )
 }
 
+@target(javascript)
+pub fn decode_signed_test()
+{
+    common.signed_test_cases
+    |> list.each
+    (
+        fn (pair)
+        {
+            gleb128.decode_signed(pair.1)
+            |> should.be_ok
+            |> should.equal(#(pair.0, pair.2))
+        }
+    )
+}
+
+@target(erlang)
 pub fn fast_decode_unsigned_test()
 {
-    case runtime.get_current_runtime()
-    {
-        runtime.Erlang -> common.unsigned_test_cases |> list.append(common.unsigned_test_cases_erlang)
-        runtime.JavaScript -> common.unsigned_test_cases
-    }
+    common.unsigned_test_cases
+    |> list.append(common.unsigned_test_cases_erlang)
     |> list.each
     (
         fn (pair)
@@ -100,13 +147,41 @@ pub fn fast_decode_unsigned_test()
     )
 }
 
+@target(javascript)
+pub fn fast_decode_unsigned_test()
+{
+    common.unsigned_test_cases
+    |> list.each
+    (
+        fn (pair)
+        {
+            gleb128.fast_decode_unsigned(pair.1)
+            |> should.be_ok
+            |> should.equal(#(pair.0, pair.2))
+        }
+    )
+}
+
+@target(erlang)
 pub fn fast_decode_signed_test()
 {
-    case runtime.get_current_runtime()
-    {
-        runtime.Erlang -> common.signed_test_cases |> list.append(common.signed_test_cases_erlang)
-        runtime.JavaScript -> common.signed_test_cases
-    }
+    common.signed_test_cases
+    |> list.append(common.signed_test_cases_erlang)
+    |> list.each
+    (
+        fn (pair)
+        {
+            gleb128.fast_decode_signed(pair.1)
+            |> should.be_ok
+            |> should.equal(#(pair.0, pair.2))
+        }
+    )
+}
+
+@target(javascript)
+pub fn fast_decode_signed_test()
+{
+    common.signed_test_cases
     |> list.each
     (
         fn (pair)

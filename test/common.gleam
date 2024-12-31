@@ -23,6 +23,7 @@ pub const unsigned_test_cases =
 ]
 
 // These below should only be run when targeting Erlang as they are too large for JavaScript.
+@target(erlang)
 pub const unsigned_test_cases_erlang =
 [
     #(60000000000000000, <<0x80, 0x80, 0x98, 0xf4, 0xe9, 0xb5, 0xca, 0x6a>>, 8),
@@ -66,6 +67,7 @@ pub const signed_test_cases =
 ]
 
 // These below should only be run when targeting Erlang as they are too large for JavaScript.
+@target(erlang)
 pub const signed_test_cases_erlang =
 [
     #(-24197857200151252728969465429440056815, <<0x91, 0xe4, 0xd0, 0xfa, 0xf6, 0xb0, 0xea, 0xe5, 0xed, 0xa1, 0xc8, 0xa1, 0xf5, 0xed, 0xe1, 0xd4, 0xcb, 0x5b>>, 18),

@@ -30,7 +30,7 @@ export function decode_native_unsigned_integer(data, endianness)
     if (endianness instanceof Big)
     {
         // Removes leading zeroes on the left
-        while (bytes.slice(0, 1) == [0x00])
+        while (bytes.slice(0, 1) == [0x00] && bytes.length > 1)
         {
             bytes.pop();
         }
@@ -43,7 +43,7 @@ export function decode_native_unsigned_integer(data, endianness)
     else if (endianness instanceof Little)
     {
         // Removes leading zeroes on the right
-        while (bytes.slice(-1) == [0x00])
+        while (bytes.slice(-1) == [0x00] && bytes.length > 1)
         {
             bytes.pop();
         }
@@ -68,7 +68,7 @@ export function decode_native_signed_integer(data, endianness)
     if (endianness instanceof Big)
     {
         // Removes leading zeroes on the left
-        while (bytes.slice(0, 1) == [0x00])
+        while (bytes.slice(0, 1) == [0x00] && bytes.length > 1)
         {
             bytes.pop();
         }
@@ -81,7 +81,7 @@ export function decode_native_signed_integer(data, endianness)
     else if (endianness instanceof Little)
     {
         // Removes leading zeroes on the right
-        while (bytes.slice(-1) == [0x00])
+        while (bytes.slice(-1) == [0x00] && bytes.length > 1)
         {
             bytes.pop();
         }

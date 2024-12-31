@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 
 import gleam/bit_array
-import gleam/bytes_builder.{type BytesBuilder}
+import gleam/bytes_tree.{type BytesTree}
 import gleam/int
 
 import gleb128/internal/native
 
-fn do_encode_unsigned(value: Int, builder: BytesBuilder) -> Result(BytesBuilder, String)
+fn do_encode_unsigned(value: Int, builder: BytesTree) -> Result(BytesTree, String)
 {
     case value >= 0
     {
@@ -23,14 +23,14 @@ fn do_encode_unsigned(value: Int, builder: BytesBuilder) -> Result(BytesBuilder,
             // -> If done, then all next chunk's bits should be 0
             case next_chunk
             {
-                0 -> Ok(bytes_builder.append(builder, <<current_chunk>>)) // No, append
+                0 -> Ok(bytes_tree.append(builder, <<current_chunk>>)) // No, append
                 _ ->
                 {
                     // Yes, then set the continuation bit (the most significant bit left unset) of the current chunk;
                     // 0b10000000 = 0x80
                     let current_chunk = int.bitwise_or(current_chunk, 0b10000000)
                     // Append the current chunk to the list and proceeds to encode the next chunk;
-                    do_encode_unsigned(next_chunk, bytes_builder.append(builder, <<current_chunk>>))
+                    do_encode_unsigned(next_chunk, bytes_tree.append(builder, <<current_chunk>>))
                 }
             }
         }
@@ -38,7 +38,7 @@ fn do_encode_unsigned(value: Int, builder: BytesBuilder) -> Result(BytesBuilder,
     }
 }
 
-fn do_encode_signed(value: Int, builder: BytesBuilder) -> BytesBuilder
+fn do_encode_signed(value: Int, builder: BytesTree) -> BytesTree
 {
     // Get value's least significant 8 bits, keeping the most significant bit among them unset, as the current chunk;
     // 0b01111111 = 0x7f
@@ -61,7 +61,7 @@ fn do_encode_signed(value: Int, builder: BytesBuilder) -> BytesBuilder
         True ->
         {
             // Then we're done, lets append the current and last chunk and return;
-            bytes_builder.append(builder, <<current_chunk>>)
+            bytes_tree.append(builder, <<current_chunk>>)
         }
         _ ->
         {
@@ -69,7 +69,7 @@ fn do_encode_signed(value: Int, builder: BytesBuilder) -> BytesBuilder
             // 0b10000000 = 0x80
             let current_chunk = int.bitwise_or(current_chunk, 0b10000000)
             // Append the current chunk to the list and proceeds to encode the next chunk;
-            do_encode_signed(next_chunk, bytes_builder.append(builder, <<current_chunk>>))
+            do_encode_signed(next_chunk, bytes_tree.append(builder, <<current_chunk>>))
         }
     }
 }
@@ -213,9 +213,9 @@ fn do_fast_decode_signed(data: Int, position_accumulator: Int, result_accumulato
 /// Returns an error when the given value to encode is negative.
 pub fn encode_unsigned(value: Int) -> Result(BitArray, String)
 {
-    case do_encode_unsigned(value, bytes_builder.new())
+    case do_encode_unsigned(value, bytes_tree.new())
     {
-        Ok(result) -> Ok(bytes_builder.to_bit_array(result))
+        Ok(result) -> Ok(bytes_tree.to_bit_array(result))
         Error(e) -> Error(e)
     }
 }
@@ -223,8 +223,8 @@ pub fn encode_unsigned(value: Int) -> Result(BitArray, String)
 /// Encodes an signed (positive or negative) integer to a bit array containing its LEB128 representation.
 pub fn encode_signed(value: Int) -> BitArray
 {
-    do_encode_signed(value, bytes_builder.new())
-    |> bytes_builder.to_bit_array
+    do_encode_signed(value, bytes_tree.new())
+    |> bytes_tree.to_bit_array
 }
 
 /// Decodes a bit array containing some LEB128 integer as an unsigned (positive) native integer.
