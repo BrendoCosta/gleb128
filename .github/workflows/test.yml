@@ -13,6 +13,8 @@ on:
     branches:
       - main
       - staging
+  schedule:
+    - cron: 0 0 * * *
 jobs:
   amd64:
     runs-on: ubuntu-latest
@@ -27,6 +29,8 @@ jobs:
           node-version: "22.11.0"
       - name: Download dependencies
         run: gleam deps download
+      - name: Update dependencies
+        run: gleam update
       - name: Run tests (Erlang)
         run: gleam test --target erlang
       - name: Run tests (JavaScript/Node.js)
@@ -45,6 +49,9 @@ jobs:
             nodejs=22.11.0-r1
       - name: Download dependencies
         run: gleam deps download
+        shell: alpine.sh {0}
+      - name: Update dependencies
+        run: gleam update
         shell: alpine.sh {0}
       - name: Run tests (Erlang)
         run: gleam test --target erlang
