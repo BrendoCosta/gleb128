@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.1.1 - 2024/12/31
+- The minimum supported version of gleam_stdlib is now 0.42.0
+
 ## v2.1.0 - 2024/09/11
 - Added support for building for JavaScript targets.
 
