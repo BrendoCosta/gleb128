@@ -39,11 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup alpine:edge for s390x
+      - name: Setup alpine:3.21 for s390x
         uses: jirutka/setup-alpine@v1
         with:
           arch: s390x
-          branch: edge
+          branch: v3.21
           packages: >
             gleam=1.6.3-r0
             nodejs=22.11.0-r1
