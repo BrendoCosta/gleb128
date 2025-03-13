@@ -4,9 +4,7 @@ import gleam/bit_array
 import gleam/bytes_tree.{type BytesTree}
 import gleam/int
 
-import gleb128/internal/native
-
-fn do_encode_unsigned(value: Int, builder: BytesTree) -> Result(BytesTree, String)
+fn do_encode_unsigned(value: Int, builder: BytesTree) -> Result(BytesTree, Nil)
 {
     case value >= 0
     {
@@ -34,7 +32,8 @@ fn do_encode_unsigned(value: Int, builder: BytesTree) -> Result(BytesTree, Strin
                 }
             }
         }
-        False -> Error("Can't encode a negative value with an unsigned function")
+        // Can't encode a negative value with an unsigned function
+        False -> Error(Nil)
     }
 }
 
@@ -74,7 +73,7 @@ fn do_encode_signed(value: Int, builder: BytesTree) -> BytesTree
     }
 }
 
-fn do_decode_unsigned(data: BitArray, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), String)
+fn do_decode_unsigned(data: BitArray, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), Nil)
 {
     case bit_array.slice(from: data, at: position_accumulator, take: 1)
     {
@@ -99,13 +98,15 @@ fn do_decode_unsigned(data: BitArray, position_accumulator: Int, result_accumula
                     _ -> do_decode_unsigned(data, position_accumulator + 1, result_accumulator, shift_accumulator + 7) // Continue
                 }
             }
-            _ -> Error("Can't decode the bit array slice into a byte")
+            // Can't decode the bit array slice into a byte
+            _ -> Error(Nil)
         }
-        _ -> Error("Invalid LEB128 integer")
+        // Invalid LEB128 integer
+        _ -> Error(Nil)
     }
 }
 
-fn do_decode_signed(data: BitArray, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), String)
+fn do_decode_signed(data: BitArray, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), Nil)
 {
     case bit_array.slice(from: data, at: position_accumulator, take: 1)
     {
@@ -143,13 +144,15 @@ fn do_decode_signed(data: BitArray, position_accumulator: Int, result_accumulato
                     _ -> do_decode_signed(data, position_accumulator + 1, result_accumulator, shift_accumulator)
                 }
             }
-            _ -> Error("Can't decode the bit array slice into a byte")
+            // Can't decode the bit array slice into a byte
+            _ -> Error(Nil)
         }
-        _ -> Error("Invalid LEB128 integer")
+        // Invalid LEB128 integer
+        _ -> Error(Nil)
     }
 }
 
-fn do_fast_decode_unsigned(data: Int, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), String)
+fn do_fast_decode_unsigned(data: Int, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), Nil)
 {
     let byte = int.bitwise_shift_right(data, 8 * position_accumulator)
     let byte = int.bitwise_and(byte, 0xff)
@@ -172,7 +175,7 @@ fn do_fast_decode_unsigned(data: Int, position_accumulator: Int, result_accumula
     }
 }
 
-fn do_fast_decode_signed(data: Int, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), String)
+fn do_fast_decode_signed(data: Int, position_accumulator: Int, result_accumulator: Int, shift_accumulator: Int) -> Result(#(Int, Int), Nil)
 {
     let byte = int.bitwise_shift_right(data, 8 * position_accumulator)
     let byte = int.bitwise_and(byte, 0xff)
@@ -211,7 +214,7 @@ fn do_fast_decode_signed(data: Int, position_accumulator: Int, result_accumulato
 /// Encodes an unsigned (positive) integer to a bit array containing its LEB128 representation.
 ///
 /// Returns an error when the given value to encode is negative.
-pub fn encode_unsigned(value: Int) -> Result(BitArray, String)
+pub fn encode_unsigned(value: Int) -> Result(BitArray, Nil)
 {
     case do_encode_unsigned(value, bytes_tree.new())
     {
@@ -227,52 +230,48 @@ pub fn encode_signed(value: Int) -> BitArray
     |> bytes_tree.to_bit_array
 }
 
-/// Decodes a bit array containing some LEB128 integer as an unsigned (positive) native integer.
+/// Decodes a bit array containing some LEB128 integer as an unsigned (positive) integer.
 /// 
 /// Returns a tuple containing the decoded value in its first position, followed by the count of
 /// bytes read in its second position. Returns an error when the given data can't be decoded.
-pub fn decode_unsigned(data: BitArray) -> Result(#(Int, Int), String)
-{
-    do_decode_unsigned(data, 0, 0, 0)
-}
-
-/// Decodes a bit array containing some LEB128 integer as an signed (positive or negative) native integer.
 /// 
-/// Returns a tuple containing the decoded value in its first position, followed by the count of
-/// bytes read in its second position. Returns an error when the given data can't be decoded.
-pub fn decode_signed(data: BitArray) -> Result(#(Int, Int), String)
-{
-    do_decode_signed(data, 0, 0, 0)
-}
-
-/// Decodes a bit array containing some LEB128 integer as an unsigned (positive) native integer.
-/// When the length of the data is less than or equal to 8 bytes, this function will treat and process
-/// the data as an native integer, thus enabling a performance boost. It will fallback to the default
-/// decoding function when the length of the data is greater than 8 bytes.
-///
-/// Returns a tuple containing the decoded value in its first position, followed by the count of
-/// bytes read in its second position. Returns an error when the given data can't be decoded.
-pub fn fast_decode_unsigned(data: BitArray) -> Result(#(Int, Int), String)
+/// This function is designed to optimize small inputs (whose length is less than or equal to 8 bytes)
+/// by treating them as integers; since the input size is close to the word size of a 64-bit CPU,
+/// the Erlang runtime will internally treat it as a "native" integer and not as a bignum/boxed integer
+/// (which are stored on the heap and referenced via pointers), thus significantly reducing memory
+/// consumption and speeding up arithmetic operations. See [erl_arith.c](https://github.com/erlang/otp/blob/55d43cd555e78b9071e514b42834ae31e2081f59/erts/emulator/beam/erl_arith.c#L146C1-L146C11).
+pub fn decode_unsigned(data: BitArray) -> Result(#(Int, Int), Nil)
 {
     case bit_array.byte_size(data)
     {
-        s if s <= 8 -> do_fast_decode_unsigned(native.decode_native_unsigned_integer(data, native.Little), 0, 0, 0)
+        size if size <= 8 -> case bit_array.slice(at: 0, from: <<data:bits, 0x00:size(64)>>, take: 8)
+        {
+            Ok(<<value:unsigned-little-size(64)>>) -> do_fast_decode_unsigned(value, 0, 0, 0)
+            _ -> Error(Nil)
+        }
         _ -> do_decode_unsigned(data, 0, 0, 0)
     }
 }
 
-/// Decodes a bit array containing some LEB128 integer as an signed (positive or negative) native integer.
-/// When the length of the data is less than or equal to 8 bytes, this function will treat and process
-/// the data as an native integer, thus enabling a performance boost. It will fallback to the default
-/// decoding function when the length of the data is greater than 8 bytes.
-///
+/// Decodes a bit array containing some LEB128 integer as an signed (positive or negative) integer.
+/// 
 /// Returns a tuple containing the decoded value in its first position, followed by the count of
 /// bytes read in its second position. Returns an error when the given data can't be decoded.
-pub fn fast_decode_signed(data: BitArray) -> Result(#(Int, Int), String)
+/// 
+/// This function is designed to optimize small inputs (whose length is less than or equal to 8 bytes)
+/// by treating them as integers; since the input size is close to the word size of a 64-bit CPU,
+/// the Erlang runtime will internally treat it as a "native" integer and not as a bignum/boxed integer
+/// (which are stored on the heap and referenced via pointers), thus significantly reducing memory
+/// consumption and speeding up arithmetic operations. See [erl_arith.c](https://github.com/erlang/otp/blob/55d43cd555e78b9071e514b42834ae31e2081f59/erts/emulator/beam/erl_arith.c#L146C1-L146C11).
+pub fn decode_signed(data: BitArray) -> Result(#(Int, Int), Nil)
 {
     case bit_array.byte_size(data)
     {
-        s if s <= 8 -> do_fast_decode_signed(native.decode_native_signed_integer(data, native.Little), 0, 0, 0)
+        size if size <= 8 -> case bit_array.slice(at: 0, from: <<data:bits, 0x00:size(64)>>, take: 8)
+        {
+            Ok(<<value:signed-little-size(64)>>) -> do_fast_decode_signed(value, 0, 0, 0)
+            _ -> Error(Nil)
+        }
         _ -> do_decode_signed(data, 0, 0, 0)
     }
 }

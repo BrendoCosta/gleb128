@@ -13,6 +13,8 @@ on:
     branches:
       - main
       - staging
+  schedule:
+    - cron: 0 0 * * *
 env:
   GLEAM_VERSION: "1.9.1"
 jobs:
@@ -22,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "27.2"
+          otp-version: "27.3"
           gleam-version: "${{ env.GLEAM_VERSION }}"
       - uses: actions/setup-node@v4
         with:
@@ -39,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup alpine:3.21 for s390x
+      - name: Setup alpine:edge for s390x
         uses: jirutka/setup-alpine@v1
         with:
           arch: s390x
@@ -55,9 +57,7 @@ jobs:
         run: |
           curl -LO "https://github.com/gleam-lang/gleam/archive/refs/tags/v${{ env.GLEAM_VERSION }}.tar.gz"
           tar -xvzf "v${{ env.GLEAM_VERSION }}.tar.gz"
-          cd "./gleam-${{ env.GLEAM_VERSION }}"
-          make build
-          make install
+          (cd "./gleam-${{ env.GLEAM_VERSION }}" && make build && make install)
         shell: alpine.sh --root {0}
       - name: Download dependencies
         run: gleam deps download

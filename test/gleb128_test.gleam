@@ -131,68 +131,6 @@ pub fn decode_signed_test()
     )
 }
 
-@target(erlang)
-pub fn fast_decode_unsigned_test()
-{
-    common.unsigned_test_cases
-    |> list.append(common.unsigned_test_cases_erlang)
-    |> list.each
-    (
-        fn (pair)
-        {
-            gleb128.fast_decode_unsigned(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
-        }
-    )
-}
-
-@target(javascript)
-pub fn fast_decode_unsigned_test()
-{
-    common.unsigned_test_cases
-    |> list.each
-    (
-        fn (pair)
-        {
-            gleb128.fast_decode_unsigned(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
-        }
-    )
-}
-
-@target(erlang)
-pub fn fast_decode_signed_test()
-{
-    common.signed_test_cases
-    |> list.append(common.signed_test_cases_erlang)
-    |> list.each
-    (
-        fn (pair)
-        {
-            gleb128.fast_decode_signed(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
-        }
-    )
-}
-
-@target(javascript)
-pub fn fast_decode_signed_test()
-{
-    common.signed_test_cases
-    |> list.each
-    (
-        fn (pair)
-        {
-            gleb128.fast_decode_signed(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
-        }
-    )
-}
-
 pub fn truncated_unsigned_decode_test()
 {
     [

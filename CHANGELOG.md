@@ -1,5 +1,14 @@
 # Changelog
 
+## v3.0.0 - 2025/03/13
+- The minimum supported Gleam version is now 1.9.0;
+- The minimum supported version of gleam_stdlib is now 0.57.0;
+- Removed ``fast_decode_unsigned`` and ``fast_decode_signed`` functions. Now ``decode_unsigned`` and ``decode_signed`` functions are optimized by default;
+- Changed functions return types from ``Result(a, String)`` to ``Result(a, Nil)`` as the number of error cases is so small that error messages aren't really helpful. This change also makes the library consistent with the remaining Gleam packages, namely the stdlib.
+
+## v2.1.2 - 2024/12/31
+- The minimum supported version of gleam_stdlib is now 0.42.0
+
 ## v2.1.1 - 2024/12/31
 - The minimum supported version of gleam_stdlib is now 0.42.0
 
