@@ -13,8 +13,8 @@ on:
     branches:
       - main
       - staging
-  schedule:
-    - cron: 0 0 * * *
+env:
+  GLEAM_VERSION: "1.9.1"
 jobs:
   amd64:
     runs-on: ubuntu-latest
@@ -23,7 +23,7 @@ jobs:
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "27.2"
-          gleam-version: "1.6.3"
+          gleam-version: "${{ env.GLEAM_VERSION }}"
       - uses: actions/setup-node@v4
         with:
           node-version: "22.13.1"
@@ -43,10 +43,22 @@ jobs:
         uses: jirutka/setup-alpine@v1
         with:
           arch: s390x
-          branch: v3.21
+          branch: edge
           packages: >
-            gleam=1.6.3-r0
-            nodejs=22.13.1-r0
+            cargo
+            curl
+            erlang-dev
+            make
+            nodejs
+            tar
+      - name: Build Gleam
+        run: |
+          curl -LO "https://github.com/gleam-lang/gleam/archive/refs/tags/v${{ env.GLEAM_VERSION }}.tar.gz"
+          tar -xvzf "v${{ env.GLEAM_VERSION }}.tar.gz"
+          cd "./gleam-${{ env.GLEAM_VERSION }}"
+          make build
+          make install
+        shell: alpine.sh --root {0}
       - name: Download dependencies
         run: gleam deps download
         shell: alpine.sh {0}
