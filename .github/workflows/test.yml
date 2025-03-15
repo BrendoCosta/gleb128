@@ -14,9 +14,11 @@ on:
       - main
       - staging
   schedule:
-    - cron: 0 0 * * *
+    - cron: 00 10 * * *
 env:
   GLEAM_VERSION: "1.9.1"
+  OTP_VERSION: "27.3"
+  NODEJS_VERSION: "22.13.1"
 jobs:
   amd64:
     runs-on: ubuntu-latest
@@ -24,11 +26,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "27.3"
+          otp-version: "${{ env.OTP_VERSION }}"
           gleam-version: "${{ env.GLEAM_VERSION }}"
       - uses: actions/setup-node@v4
         with:
-          node-version: "22.13.1"
+          node-version: "${{ env.NODEJS_VERSION }}"
       - name: Download dependencies
         run: gleam deps download
       - name: Update dependencies
@@ -37,37 +39,3 @@ jobs:
         run: gleam test --target erlang
       - name: Run tests (JavaScript/Node.js)
         run: gleam test --target javascript --runtime node
-  s390x:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup alpine:edge for s390x
-        uses: jirutka/setup-alpine@v1
-        with:
-          arch: s390x
-          branch: edge
-          packages: >
-            cargo
-            curl
-            erlang-dev
-            make
-            nodejs
-            tar
-      - name: Build Gleam
-        run: |
-          curl -LO "https://github.com/gleam-lang/gleam/archive/refs/tags/v${{ env.GLEAM_VERSION }}.tar.gz"
-          tar -xvzf "v${{ env.GLEAM_VERSION }}.tar.gz"
-          (cd "./gleam-${{ env.GLEAM_VERSION }}" && make build && make install)
-        shell: alpine.sh --root {0}
-      - name: Download dependencies
-        run: gleam deps download
-        shell: alpine.sh {0}
-      - name: Update dependencies
-        run: gleam update
-        shell: alpine.sh {0}
-      - name: Run tests (Erlang)
-        run: gleam test --target erlang
-        shell: alpine.sh {0}
-      - name: Run tests (JavaScript/Node.js)
-        run: gleam test --target javascript --runtime node
-        shell: alpine.sh {0}

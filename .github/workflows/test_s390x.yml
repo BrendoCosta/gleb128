@@ -1,0 +1,42 @@
+name: tests (s390x)
+
+on:
+  schedule:
+    - cron: 00 10 * * 3
+env:
+  GLEAM_VERSION: "1.9.1"
+jobs:
+  s390x:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup alpine:edge for s390x
+        uses: jirutka/setup-alpine@v1
+        with:
+          arch: s390x
+          branch: edge
+          packages: >
+            cargo
+            curl
+            erlang-dev
+            make
+            nodejs
+            tar
+      - name: Build Gleam
+        run: |
+          curl -LO "https://github.com/gleam-lang/gleam/archive/refs/tags/v${{ env.GLEAM_VERSION }}.tar.gz"
+          tar -xvzf "v${{ env.GLEAM_VERSION }}.tar.gz"
+          (cd "./gleam-${{ env.GLEAM_VERSION }}" && make build && make install)
+        shell: alpine.sh --root {0}
+      - name: Download dependencies
+        run: gleam deps download
+        shell: alpine.sh {0}
+      - name: Update dependencies
+        run: gleam update
+        shell: alpine.sh {0}
+      - name: Run tests (Erlang)
+        run: gleam test --target erlang
+        shell: alpine.sh {0}
+      - name: Run tests (JavaScript/Node.js)
+        run: gleam test --target javascript --runtime node
+        shell: alpine.sh {0}
