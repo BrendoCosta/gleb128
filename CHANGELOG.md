@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.0.0 - 2025/09/28
+- The minimum supported Gleam version is now 1.11.0;
+
 ## v3.0.0 - 2025/03/13
 - The minimum supported Gleam version is now 1.9.0;
 - The minimum supported version of gleam_stdlib is now 0.57.0;
