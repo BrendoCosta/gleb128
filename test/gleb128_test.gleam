@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 import gleeunit
-import gleeunit/should
 import gleam/list
 import gleb128
 import common
@@ -20,8 +19,7 @@ pub fn encode_unsigned_test()
     (
         fn (pair)
         {
-            gleb128.encode_unsigned(pair.0)
-            |> should.equal(Ok(pair.1))
+            assert gleb128.encode_unsigned(pair.0) == Ok(pair.1)
         }
     )
 }
@@ -34,8 +32,7 @@ pub fn encode_unsigned_test()
     (
         fn (pair)
         {
-            gleb128.encode_unsigned(pair.0)
-            |> should.equal(Ok(pair.1))
+            assert gleb128.encode_unsigned(pair.0) == Ok(pair.1)
         }
     )
 }
@@ -49,8 +46,7 @@ pub fn encode_signed_test()
     (
         fn (pair)
         {
-            gleb128.encode_signed(pair.0)
-            |> should.equal(pair.1)
+            assert gleb128.encode_signed(pair.0) == pair.1
         }
     )
 }
@@ -63,8 +59,7 @@ pub fn encode_signed_test()
     (
         fn (pair)
         {
-            gleb128.encode_signed(pair.0)
-            |> should.equal(pair.1)
+            assert gleb128.encode_signed(pair.0) == pair.1
         }
     )
 }
@@ -78,9 +73,7 @@ pub fn decode_unsigned_test()
     (
         fn (pair)
         {
-            gleb128.decode_unsigned(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
+            assert gleb128.decode_unsigned(pair.1) == Ok(#(pair.0, pair.2))
         }
     )
 }
@@ -93,9 +86,7 @@ pub fn decode_unsigned_test()
     (
         fn (pair)
         {
-            gleb128.decode_unsigned(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
+            assert gleb128.decode_unsigned(pair.1) == Ok(#(pair.0, pair.2))
         }
     )
 }
@@ -109,9 +100,7 @@ pub fn decode_signed_test()
     (
         fn (pair)
         {
-            gleb128.decode_signed(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
+            assert gleb128.decode_signed(pair.1) == Ok(#(pair.0, pair.2))
         }
     )
 }
@@ -124,9 +113,7 @@ pub fn decode_signed_test()
     (
         fn (pair)
         {
-            gleb128.decode_signed(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
+            assert gleb128.decode_signed(pair.1) == Ok(#(pair.0, pair.2))
         }
     )
 }
@@ -144,9 +131,7 @@ pub fn truncated_unsigned_decode_test()
     (
         fn (pair)
         {
-            gleb128.decode_unsigned(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
+            assert gleb128.decode_unsigned(pair.1) == Ok(#(pair.0, pair.2))
         }
     )
 }
@@ -164,9 +149,7 @@ pub fn truncated_signed_decode_test()
     (
         fn (pair)
         {
-            gleb128.decode_signed(pair.1)
-            |> should.be_ok
-            |> should.equal(#(pair.0, pair.2))
+            assert gleb128.decode_signed(pair.1) == Ok(#(pair.0, pair.2))
         }
     )
 }
