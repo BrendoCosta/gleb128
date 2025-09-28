@@ -1,6 +1,7 @@
 name: tests
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -16,7 +17,7 @@ on:
   schedule:
     - cron: 00 10 * * *
 env:
-  GLEAM_VERSION: "1.9.1"
+  GLEAM_VERSION: "1.11.0"
   OTP_VERSION: "27.3"
   NODEJS_VERSION: "22.13.1"
 jobs:
