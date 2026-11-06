@@ -153,3 +153,13 @@ pub fn truncated_signed_decode_test()
         }
     )
 }
+
+pub fn unterminated_seven_byte_signed_decode_test()
+{
+    assert gleb128.decode_signed(<<128, 128, 128, 128, 128, 128, 128>>) == Error(Nil)
+}
+
+pub fn unterminated_signed_decode_test()
+{
+    assert gleb128.decode_signed(<<128, 128, 128, 128, 128, 128, 128, 128>>) == Error(Nil)
+}
