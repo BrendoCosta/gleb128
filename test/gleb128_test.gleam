@@ -118,6 +118,12 @@ pub fn decode_signed_test()
     )
 }
 
+pub fn malformed_unsigned_decode_test()
+{
+    assert gleb128.decode_unsigned(<<>>) == Error(Nil)
+    assert gleb128.decode_unsigned(<<128>>) == Error(Nil)
+}
+
 pub fn truncated_unsigned_decode_test()
 {
     [
